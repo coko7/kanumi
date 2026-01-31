@@ -90,5 +90,8 @@ fn process_args(args: Cli) -> Result<()> {
         ),
         cli::Commands::Configuration { command } => cli::handle_config_command(command, &config),
         cli::Commands::Metadata { command } => cli::handle_metadata_command(command, &config),
+        cli::Commands::Dirs { use_json_format } => {
+            cli::handle_dirs_command(use_json_format, &config)
+        }
     }
 }

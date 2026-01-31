@@ -32,6 +32,13 @@ pub enum Commands {
         #[command(subcommand)]
         command: MetadataCommands,
     },
+    /// List all directories containing images
+    #[command(name = "dirs")]
+    Dirs {
+        /// Output in JSON
+        #[arg(short = 'j', long = "json")]
+        use_json_format: bool,
+    },
     /// List images that match given selectors
     #[command(name = "list", alias = "ls")]
     List {

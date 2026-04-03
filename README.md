@@ -4,10 +4,15 @@ A CLI to manage collection of images.
 
 ![demo](https://github.com/user-attachments/assets/a0a83011-d028-400b-930e-f7f6826d4342)
 
+[![Crates info](https://img.shields.io/crates/v/kanumi.svg)](https://crates.io/crates/kanumi)
+[![License: GPL-3.0](https://img.shields.io/github/license/coko7/kanumi?color=blue)](LICENSE)
+[![Number of Stars](https://img.shields.io/github/stars/coko7/kanumi.svg?style=flat&logo=github&colorB=green&label=stars)](https://github.com/coko7/kanumi/stargazers)
+![Rust](https://img.shields.io/github/languages/top/coko7/kanumi?color=orange)
+
 ## What is it?
 
 I have lots of wallpapers on my computer and I wanted a way to easily filter them and pipe them to other scripts.
-For example, I would filter based on some attributes, and send that to `swww` to update my wallpaper.
+For example, I would filter based on some attributes, and send that to [`awww`](https://codeberg.org/LGFae/awww) to update my wallpaper.
 
 Think of `kanumi` like the `find` command, but tailored for images with metadata.
 For example, the following command will select all images at least 1920x1080 with a `favorite` score between 3 and 7.
@@ -20,8 +25,15 @@ coko7@example:~$ kanumi list -W 1920.. -H 1080 -s favorite=3..7
 ## Installation
 
 The easiest way to install is through [crates.io](https://crates.io/crates/kanumi):
-```console
+```sh
 cargo install kanumi
+```
+
+The other option is to build from source:
+```sh
+git clone https://github.com/coko7/kanumi.git
+cd kanumi
+cargo build --release
 ```
 
 ## Usage
@@ -29,6 +41,7 @@ cargo install kanumi
 kanumi has multiple main commands:
 - [config](#config-command): view/manager kanumi configuration
 - [metadata](#metadata-command): view/manage image metadatas
+- [dirs](#dirs-command): list all dirs containing images
 - [list](#list-command): list images that match given selectors
 - [scan](#scan-command): scan for missing image/metadata
 
@@ -92,6 +105,21 @@ Commands:
   help      Print this message or the help of the given subcommand(s)
 
 Options:
+  -v, --verbose...  Increase logging verbosity
+  -q, --quiet...    Decrease logging verbosity
+  -h, --help        Print help
+```
+
+### 📂 `dirs` command
+
+```console
+coko7@example:~$ kanumi dirs -h
+List all directories containing images
+
+Usage: kanumi dirs [OPTIONS]
+
+Options:
+  -j, --json        Output in JSON
   -v, --verbose...  Increase logging verbosity
   -q, --quiet...    Decrease logging verbosity
   -h, --help        Print help

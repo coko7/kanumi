@@ -1,4 +1,4 @@
-use clap::{command, ArgGroup, Args, Parser, Subcommand};
+use clap::{Args, ColorChoice, Parser, Subcommand};
 use std::{ffi::OsString, ops::RangeInclusive, path::PathBuf};
 
 use crate::{
@@ -7,9 +7,14 @@ use crate::{
 };
 
 #[derive(Debug, Parser)]
-#[command(name = "kanumi")]
-#[command(about = "Manage collection of images from your terminal", long_about = None)]
-#[command(version)]
+#[command(
+    name = "kanumi",
+    version,
+    author = "Made by @coko7 <contact@coko7.fr>",
+    color = ColorChoice::Auto,
+    about = "Manage collection of images from your terminal",
+    help_template = "{name} {version}\n\n{about}\n\n{usage-heading}\n{usage}\n\n{all-args}\n\n{author}"
+)]
 pub struct Cli {
     #[command(subcommand)]
     pub command: Commands,
@@ -78,18 +83,13 @@ pub enum Commands {
 }
 
 #[derive(Debug, Args)]
-#[command(group(
-    ArgGroup::new("format")
-        .args(["json", "toml"])
-        .multiple(false)
-))]
 pub struct ConfigShowFormatArgs {
     /// Output in JSON
-    #[arg(short = 'j', long)]
+    #[arg(short = 'j', long, conflicts_with = "toml")]
     pub json: bool,
 
     /// Output in TOML (default)
-    #[arg(short = 't', long)]
+    #[arg(short = 't', long, conflicts_with = "json")]
     pub toml: bool,
 }
 

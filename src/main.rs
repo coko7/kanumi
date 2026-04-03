@@ -4,6 +4,8 @@ use cli::{Cli, Commands};
 use log::{error, info, warn};
 use std::process::ExitCode;
 
+use crate::cli::list::ListArgs;
+
 mod cli;
 mod models;
 mod utils;
@@ -72,16 +74,17 @@ fn process_args(args: Cli) -> Result<()> {
             }
 
             warn!("right now, metadata file is required to list images");
-            cli::list_images_using_metadata(
-                &config.root_images_dir,
-                &config.metadata_path,
+
+            cli::list_images_using_metadata(ListArgs {
+                root_images_dir: config.root_images_dir,
+                metadata_path: config.metadata_path,
                 active_directories,
                 score_filters,
                 width_range,
                 height_range,
                 tags,
                 use_json_format,
-            )
+            })
         }
         cli::Commands::Scan { use_json_format } => cli::scan_images(
             &config.root_images_dir,

@@ -1,24 +1,34 @@
 use anyhow::Result;
 use log::{debug, info};
-use std::{
-    ops::RangeInclusive,
-    path::{Path, PathBuf},
-};
+use std::{ops::RangeInclusive, path::PathBuf};
 
 use crate::{models::ScoreFilter, utils};
 
-pub fn list_images_using_metadata(
-    root_images_dir: &Path,
-    metadata_path: &Path,
-    active_directories: Option<Vec<PathBuf>>,
-    score_filters: Option<Vec<ScoreFilter>>,
-    width_range: Option<RangeInclusive<usize>>,
-    height_range: Option<RangeInclusive<usize>>,
-    tags: Option<Vec<String>>,
-    use_json_format: bool,
-) -> Result<()> {
+pub struct ListArgs {
+    pub root_images_dir: PathBuf,
+    pub metadata_path: PathBuf,
+    pub active_directories: Option<Vec<PathBuf>>,
+    pub score_filters: Option<Vec<ScoreFilter>>,
+    pub width_range: Option<RangeInclusive<usize>>,
+    pub height_range: Option<RangeInclusive<usize>>,
+    pub tags: Option<Vec<String>>,
+    pub use_json_format: bool,
+}
+
+pub fn list_images_using_metadata(args: ListArgs) -> Result<()> {
+    let ListArgs {
+        root_images_dir,
+        metadata_path,
+        active_directories,
+        score_filters,
+        width_range,
+        height_range,
+        tags,
+        use_json_format,
+    } = args;
+
     debug!("loading image metadatas");
-    let metas = utils::common::load_image_metas(metadata_path)?;
+    let metas = utils::common::load_image_metas(&metadata_path)?;
 
     info!("active_directories: {:?}", active_directories);
     info!("score_filters: {:?}", score_filters);

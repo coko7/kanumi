@@ -140,11 +140,11 @@ pub fn image_matches_dims(
 ) -> bool {
     debug!("checking dimensions for: {}", image.display());
     let dimensions = image::image_dimensions(image);
-    if dimensions.is_err() {
+    if let Err(error) = dimensions {
         warn!(
             "failed to check dimensions for: {}, error: {}",
             image.display(),
-            dimensions.unwrap_err()
+            error
         );
         return false;
     }

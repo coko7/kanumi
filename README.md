@@ -34,13 +34,17 @@ kanumi has multiple main commands:
 
 ```console
 coko7@example:~$ kanumi -h
+kanumi 0.2.1
+
 Manage collection of images from your terminal
 
-Usage: kanumi [OPTIONS] <COMMAND>
+Usage:
+kanumi [OPTIONS] <COMMAND>
 
 Commands:
   config    View and manage configuration
   metadata  View and manage metadata
+  dirs      List all directories containing images
   list      List images that match given selectors
   scan      Scan the entire images directory to find missing data
   help      Print this message or the help of the given subcommand(s)
@@ -50,6 +54,8 @@ Options:
   -q, --quiet...    Decrease logging verbosity
   -h, --help        Print help
   -V, --version     Print version
+
+Made by @coko7 <contact@coko7.fr>
 ```
 
 ### ⚙️ `config` command

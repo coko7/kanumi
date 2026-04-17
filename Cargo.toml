@@ -1,6 +1,6 @@
 [package]
 name = "kanumi"
-version = "0.2.1"
+version = "0.3.0"
 authors = ["Coko <91132775+Coko7@users.noreply.github.com>"]
 edition = "2021"
 description = "A cli to manage collections of images"

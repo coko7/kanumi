@@ -38,8 +38,9 @@ fn show_config_as_json(configuration: &Configuration) -> Result<()> {
 }
 
 fn show_config_as_toml(configuration: &Configuration, config_path: &Path) -> Result<()> {
-    let banner = utils::common::create_banner(&config_path.display().to_string());
-    println!("{banner}");
+    let banner = utils::common::create_banner(&config_path.display().to_string(), '*');
+    let rainbow_banner = utils::common::colorize_rainbow(&banner, 2);
+    println!("{rainbow_banner}");
 
     let toml_config = configuration.to_toml_str()?;
     println!("{toml_config}");

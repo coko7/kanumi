@@ -17,7 +17,6 @@ jobs:
         platform: [ubuntu-latest, macos-latest]
         toolchain: [stable]
     runs-on: ${{ matrix.platform }}
-    enZ: Europe/Paris
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@master

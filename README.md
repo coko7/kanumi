@@ -8,6 +8,7 @@ A CLI to manage collection of images.
 [![License: GPL-3.0](https://img.shields.io/github/license/coko7/kanumi?color=blue)](LICENSE)
 [![Number of Stars](https://img.shields.io/github/stars/coko7/kanumi.svg?style=flat&logo=github&colorB=green&label=stars)](https://github.com/coko7/kanumi/stargazers)
 ![Rust](https://img.shields.io/github/languages/top/coko7/kanumi?color=orange)
+[![Tests](https://github.com/coko7/kanumi/actions/workflows/rust.yml/badge.svg)](https://github.com/coko7/kanumi/actions/workflows/rust.yml)
 
 ## What is it?
 
@@ -16,6 +17,7 @@ For example, I would filter based on some attributes, and send that to [`awww`](
 
 Think of `kanumi` like the `find` command, but tailored for images with metadata.
 For example, the following command will select all images at least 1920x1080 with a `favorite` score between 3 and 7.
+
 ```console
 coko7@example:~$ kanumi list --width=1920.. --height=1080 --scores favorite=3..7
 # shorter equivalent:
@@ -25,11 +27,13 @@ coko7@example:~$ kanumi list -W 1920.. -H 1080 -s favorite=3..7
 ## Installation
 
 The easiest way to install is through [crates.io](https://crates.io/crates/kanumi):
+
 ```sh
 cargo install kanumi
 ```
 
 The other option is to build from source:
+
 ```sh
 git clone https://github.com/coko7/kanumi.git
 cd kanumi
@@ -39,6 +43,7 @@ cargo build --release
 ## Usage
 
 kanumi has multiple main commands:
+
 - [config](#config-command): view/manager kanumi configuration
 - [metadata](#metadata-command): view/manage image metadatas
 - [dirs](#dirs-command): list all dirs containing images
@@ -147,13 +152,15 @@ Options:
 
 #### Examples
 
-1. Select images with width >= 1920, height >= 1080, with a "favs" < 2
+Select images with width >= 1920, height >= 1080, with a "favs" < 2
+
 ```console
 coko7@example:~$ kanumi list --width=1920.. --height=1080.. --scores favs=0..1
 coko7@example:~$ kanumi ls -W 1920.. -H 1080.. -s favs=..1
 ```
 
-2. Select tiny images with a "simple" score of exactly 5:
+Select tiny images with a "simple" score of exactly 5:
+
 ```console
 coko7@example:~$ kanumi ls -W ..50 -H ..50 -s favs=5
 coko7@example:~$ kanumi ls -W ..50 -H 0..50 -s favs=5..5

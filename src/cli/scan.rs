@@ -2,6 +2,7 @@ use anyhow::Result;
 use log::{debug, info, warn};
 use serde_json::json;
 use std::{collections::HashMap, path::Path};
+use yansi::Paint;
 
 use crate::{models::ImageMeta, utils};
 
@@ -88,26 +89,37 @@ pub fn scan_images(
             println!("{summary_json}");
         }
         false => {
+            let banner = utils::common::create_banner("    Scan Summary    ", 'o');
+            let rainbow_banner = utils::common::colorize_rainbow(&banner, 2);
+            println!("{}", rainbow_banner);
+
             if !new_images.is_empty() {
-                println!("{} new:", new_images.len());
+                let title = format!("{} new:", new_images.len());
+                println!("{}", title.underline());
                 for (_, img_path) in new_images.iter() {
-                    println!("- {}", img_path.display());
+                    println!("- {}", img_path.display().green());
                 }
                 println!();
             }
 
             if !moved_images.is_empty() {
-                println!("{} moved:", moved_images.len());
+                let title = format!("{} moved:", moved_images.len());
+                println!("{}", title.underline());
                 for (new_path, metadata) in moved_images.iter() {
-                    println!("- {} -> {}", metadata.path.display(), new_path.display())
+                    println!(
+                        "- {} -> {}",
+                        metadata.path.display().bright_black().italic(),
+                        new_path.display().yellow()
+                    )
                 }
                 println!();
             }
 
             if !deleted_images.is_empty() {
-                println!("{} deleted:", deleted_images.len());
+                let title = format!("{} deleted:", deleted_images.len());
+                println!("{}", title.underline());
                 for metadata in deleted_images.iter() {
-                    println!("- {}", metadata.path.display());
+                    println!("- {}", metadata.path.display().red());
                 }
                 println!();
             }

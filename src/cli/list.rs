@@ -1,8 +1,11 @@
 use anyhow::Result;
 use log::{debug, info};
-use std::{ops::RangeInclusive, path::PathBuf};
+use std::{collections::HashSet, ops::RangeInclusive, path::PathBuf};
 
-use crate::{models::ScoreFilter, utils};
+use crate::{
+    models::{image_meta::Color, ScoreFilter},
+    utils,
+};
 
 pub struct ListArgs {
     pub root_images_dir: PathBuf,
@@ -12,7 +15,9 @@ pub struct ListArgs {
     pub width_range: Option<RangeInclusive<usize>>,
     pub height_range: Option<RangeInclusive<usize>>,
     pub tags: Option<Vec<String>>,
+    pub colors: Option<Vec<Color>>,
     pub use_json_format: bool,
+    pub show_directory_names_only: bool,
 }
 
 pub fn list_images_using_metadata(args: ListArgs) -> Result<()> {
@@ -24,7 +29,9 @@ pub fn list_images_using_metadata(args: ListArgs) -> Result<()> {
         width_range,
         height_range,
         tags,
+        colors,
         use_json_format,
+        show_directory_names_only,
     } = args;
 
     debug!("loading image metadatas");
@@ -86,20 +93,48 @@ pub fn list_images_using_metadata(args: ListArgs) -> Result<()> {
         }
     }
 
-    debug!("about to render output");
-    match use_json_format {
-        true => {
-            info!("outputting as json");
-            let metas_json = serde_json::to_string(&filtered_metas)?;
-            println!("{}", metas_json);
+    if let Some(colors) = colors {
+        info!("applying colors filters...");
+
+        for color in colors.iter() {
+            filtered_metas.retain(|meta| meta.colors.contains(color));
         }
-        false => {
-            info!("outputting image paths only");
-            for meta in filtered_metas.iter() {
-                println!("{}", meta.path.display());
+    }
+
+    debug!("about to render output");
+
+    if show_directory_names_only {
+        debug!("rendering directory names only");
+        let filtered_parent_paths: Vec<_> =
+            filtered_metas.iter().map(|m| m.path.parent()).collect();
+
+        let filtered_dirs: HashSet<_> = filtered_parent_paths.iter().flatten().collect();
+
+        if use_json_format {
+            info!("outputting directory names as json");
+            let metas_json = serde_json::to_string(&filtered_dirs)?;
+            println!("{}", metas_json);
+        } else {
+            info!("outputting directory names as plain");
+            for dir in filtered_dirs.iter() {
+                println!("{}", dir.display());
             }
         }
-    };
+
+        return Ok(());
+    }
+
+    debug!("rendering full images meta");
+    if use_json_format {
+        info!("outputting image metas as json");
+        let metas_json = serde_json::to_string(&filtered_metas)?;
+        println!("{}", metas_json);
+    } else {
+        info!("outputting image paths as plain");
+        for meta in filtered_metas.iter() {
+            println!("{}", meta.path.display());
+        }
+    }
 
     Ok(())
 }

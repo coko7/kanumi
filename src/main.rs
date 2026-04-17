@@ -1,8 +1,9 @@
 use anyhow::{ensure, Result};
 use clap::Parser;
 use cli::{Cli, Commands};
-use log::{error, info, warn};
+use log::{info, warn};
 use std::process::ExitCode;
+use yansi::Paint;
 
 use crate::cli::list::ListArgs;
 
@@ -13,14 +14,15 @@ mod utils;
 fn main() -> ExitCode {
     let args = Cli::parse();
     env_logger::Builder::new()
+        .filter_module("kanumi", log::LevelFilter::Error)
         .filter_level(args.verbose.log_level_filter())
         .init();
 
-    info!("process cli args");
+    info!("process cli args: {args:?}");
     match process_args(args) {
         Ok(_) => ExitCode::SUCCESS,
         Err(e) => {
-            error!("{}", e);
+            eprintln!("{}", e.red());
             ExitCode::FAILURE
         }
     }
@@ -50,25 +52,22 @@ fn process_args(args: Cli) -> Result<()> {
 
     info!("metadata_path: {:?}", config.metadata_path);
     match args.command {
-        Commands::List {
-            active_directories,
-            scores,
-            width_range,
-            height_range,
-            tags,
-            ignore_config,
-            use_json_format,
-        } => {
-            let mut active_directories = active_directories;
-            let mut score_filters = scores;
-            let mut width_range = width_range;
-            let mut height_range = height_range;
+        Commands::List(args) => {
+            let mut active_parent_directories = args.active_parent_directories;
+            let mut score_filters = args.scores;
+            let mut width_range = args.width_range;
+            let mut height_range = args.height_range;
+            let mut tags_filters = args.tags;
+            let mut color_filters = args.colors;
 
-            if !ignore_config {
-                active_directories = active_directories.or(config.filters.active_directories);
+            if !args.ignore_config {
+                active_parent_directories =
+                    active_parent_directories.or(config.filters.active_directories);
                 score_filters = score_filters.or(config.filters.scores);
                 width_range = width_range.or(config.filters.width_range);
                 height_range = height_range.or(config.filters.height_range);
+                tags_filters = tags_filters.or(config.filters.tags);
+                color_filters = color_filters.or(config.filters.colors);
             } else {
                 info!("ignore_config flag has been added");
             }
@@ -78,12 +77,14 @@ fn process_args(args: Cli) -> Result<()> {
             cli::list_images_using_metadata(ListArgs {
                 root_images_dir: config.root_images_dir,
                 metadata_path: config.metadata_path,
-                active_directories,
+                active_directories: active_parent_directories,
                 score_filters,
                 width_range,
                 height_range,
-                tags,
-                use_json_format,
+                tags: tags_filters,
+                colors: color_filters,
+                use_json_format: args.use_json_format,
+                show_directory_names_only: args.show_directory_names_only,
             })
         }
         cli::Commands::Scan { use_json_format } => cli::scan_images(

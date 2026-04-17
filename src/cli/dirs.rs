@@ -10,6 +10,7 @@ pub fn handle_dirs_command(use_json_format: bool, config: &Configuration) -> Res
 
     let mut all_dirs: Vec<PathBuf> = vec![];
     for meta in metas.iter() {
+        debug!("{meta:?}");
         let path = PathBuf::from(&meta.path);
         if let Some(parent_dir) = path.parent() {
             let parent_dir = parent_dir.to_path_buf();

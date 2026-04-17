@@ -2,7 +2,7 @@ use clap::{Args, ColorChoice, Parser, Subcommand};
 use std::{ffi::OsString, ops::RangeInclusive, path::PathBuf};
 
 use crate::{
-    models::ScoreFilter,
+    models::{image_meta::Color, ScoreFilter},
     utils::common::{parse_range, parse_score_filters},
 };
 
@@ -46,40 +46,53 @@ pub enum Commands {
     },
     /// List images that match given selectors
     #[command(name = "list", alias = "ls")]
-    List {
-        /// Filter based on parent directories
-        #[arg(short = 'd', long = "directories")]
-        active_directories: Option<Vec<PathBuf>>,
+    List(ListImagesArgs),
 
-        /// Filter based on score range
-        #[arg(short = 's', long = "scores", value_parser = parse_score_filters)]
-        scores: Option<Vec<ScoreFilter>>,
-
-        /// Filter based on width range
-        #[arg(short = 'W', long = "width", value_parser = parse_range)]
-        width_range: Option<RangeInclusive<usize>>,
-
-        /// Filter based on height range
-        #[arg(short = 'H', long = "height", value_parser = parse_range)]
-        height_range: Option<RangeInclusive<usize>>,
-
-        #[arg(short = 't', long = "tags")]
-        tags: Option<Vec<String>>,
-
-        /// Ignore selectors preset from config
-        #[arg(short = 'i', long = "ignore")]
-        ignore_config: bool,
-
-        /// Output in JSON
-        #[arg(short = 'j', long = "json")]
-        use_json_format: bool,
-    },
     /// Scan the entire images directory to find missing data
     Scan {
         /// Output in JSON
         #[arg(short = 'j', long = "json")]
         use_json_format: bool,
     },
+}
+
+#[derive(Debug, Args)]
+pub struct ListImagesArgs {
+    /// Filter based on parent directories
+    #[arg(short = 'p', long = "parent-directories", alias = "parent-dirs")]
+    pub active_parent_directories: Option<Vec<PathBuf>>,
+
+    /// Filter based on score range
+    #[arg(short = 's', long = "scores", value_parser = parse_score_filters)]
+    pub scores: Option<Vec<ScoreFilter>>,
+
+    /// Filter based on width range
+    #[arg(short = 'W', long = "width", value_parser = parse_range)]
+    pub width_range: Option<RangeInclusive<usize>>,
+
+    /// Filter based on height range
+    #[arg(short = 'H', long = "height", value_parser = parse_range)]
+    pub height_range: Option<RangeInclusive<usize>>,
+
+    /// Filter based on tags
+    #[arg(short = 't', long = "tags")]
+    pub tags: Option<Vec<String>>,
+
+    /// Filter based on colors
+    #[arg(short = 'c', long = "colors")]
+    pub colors: Option<Vec<Color>>,
+
+    /// Show containing directories with matches instead of images
+    #[arg(short = 'd', long = "directories", alias = "dirs")]
+    pub show_directory_names_only: bool,
+
+    /// Ignore selectors preset from config
+    #[arg(short = 'i', long = "ignore")]
+    pub ignore_config: bool,
+
+    /// Output in JSON
+    #[arg(short = 'j', long = "json")]
+    pub use_json_format: bool,
 }
 
 #[derive(Debug, Args)]

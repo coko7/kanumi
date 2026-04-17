@@ -1,6 +1,7 @@
 use anyhow::{bail, Context, Result};
 use directories::ProjectDirs;
 use log::{debug, info, warn};
+use serde_json::to_string;
 use std::{
     env,
     fs::{self, File},
@@ -9,6 +10,7 @@ use std::{
     path::{Path, PathBuf},
 };
 use walkdir::{DirEntry, WalkDir};
+use yansi::{Color, Paint};
 
 use crate::models::{Configuration, ImageMeta, ScoreFilter};
 
@@ -76,14 +78,13 @@ pub fn parse_score_filters(input: &str) -> Result<ScoreFilter> {
         allow_unscored = true;
     }
 
-    let mut parts = input.split('=');
-    let key = parts.next().context("failed to get key")?.to_string();
-    let range = parts.next().context("failed to get range")?.to_string();
-    let range = parse_range(&range)?;
+    let (key, range) = input
+        .split_once('=')
+        .context("failed to split input on '='")?;
 
     let score_filter = ScoreFilter {
-        name: key,
-        range,
+        name: key.to_string(),
+        range: parse_range(range)?,
         allow_unscored,
     };
 
@@ -225,14 +226,38 @@ pub fn compute_blake3_hash(file: &Path) -> Result<String> {
     Ok(hash.to_string())
 }
 
-pub fn create_banner(text: &str) -> String {
-    let center_part = format!("# {text} #\n");
+pub fn create_banner(text: &str, border_char: char) -> String {
+    let center_part = format!("{border_char} {text} {border_char}\n");
 
     let inside_len = center_part.len() - 3;
-    let outline = format!("#{}#\n", "#".repeat(inside_len));
-    let empty = format!("#{}#\n", " ".repeat(inside_len));
+    let outline = format!(
+        "{border_char}{}{border_char}\n",
+        border_char.to_string().repeat(inside_len)
+    );
+    let empty = format!("{border_char}{}{border_char}\n", " ".repeat(inside_len));
 
     format!("{outline}{empty}{center_part}{empty}{outline}")
+}
+
+pub fn colorize_rainbow(text: &str, chunk_len: usize) -> String {
+    const COLORS: [Color; 7] = [
+        Color::Red,
+        Color::Rgb(255, 165, 0),
+        Color::Yellow,
+        Color::Green,
+        Color::Cyan,
+        Color::Blue,
+        Color::Magenta,
+    ];
+
+    text.chars()
+        .enumerate()
+        .map(|(i, c)| {
+            let chunked_idx = i / chunk_len;
+            let color = &COLORS[chunked_idx % COLORS.len()];
+            Paint::new(c.to_string()).fg(*color).to_string()
+        })
+        .collect()
 }
 
 pub fn get_image_by_path_or_id<'a>(
@@ -245,4 +270,106 @@ pub fn get_image_by_path_or_id<'a>(
     }
 
     Ok(metadatas.iter().find(|m| m.id == identifier))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_parse_range_valid_integers() {
+        assert_eq!(parse_range("5").unwrap(), 5..=5);
+        assert_eq!(parse_range("3..7").unwrap(), 3..=7);
+    }
+
+    #[test]
+    fn test_parse_range_open_ranges() {
+        assert_eq!(parse_range("..7").unwrap(), 0..=7);
+        assert_eq!(parse_range("3..",).unwrap(), 3..=usize::MAX);
+    }
+
+    #[test]
+    fn test_parse_range_invalid() {
+        assert!(parse_range("7..3").is_err());
+        assert!(parse_range("notanumber").is_err());
+        assert!(parse_range("").is_err());
+        assert!(parse_range("3...5").is_err());
+    }
+
+    #[test]
+    fn test_parse_score_filters() {
+        let filter = parse_score_filters("foo=1..10").unwrap();
+        assert_eq!(filter.name, "foo");
+        assert_eq!(filter.range, 1..=10);
+        assert!(!filter.allow_unscored);
+    }
+    #[test]
+    fn test_parse_score_filter_with_at() {
+        let filter = parse_score_filters("foo=2@").unwrap();
+        assert_eq!(filter.name, "foo");
+        assert_eq!(filter.range, 2..=2);
+        assert!(filter.allow_unscored);
+    }
+
+    #[test]
+    fn test_parse_range_more_edge_cases() {
+        // Large numbers
+        assert_eq!(parse_range("0..100000").unwrap(), 0..=100000);
+        // Zero-width
+        assert_eq!(parse_range("0..0").unwrap(), 0..=0);
+        // Spaces and invalid
+        assert!(parse_range("   ").is_err());
+        // Open-ended invalid
+        assert!(parse_range("..").is_err());
+    }
+
+    #[test]
+    fn test_parse_score_filters_errors() {
+        // Missing '='
+        assert!(parse_score_filters("foo10").is_err());
+        // Bad range
+        assert!(parse_score_filters("foo=a..b").is_err());
+        // Empty
+        assert!(parse_score_filters("").is_err());
+        // Double '='
+        assert!(parse_score_filters("foo=10=12").is_err());
+    }
+
+    #[test]
+    fn test_image_score_matches() {
+        let filter = ScoreFilter {
+            name: "qual".to_string(),
+            range: 30..=40,
+            allow_unscored: false,
+        };
+        let meta_scored = ImageMeta {
+            id: "id".to_string(),
+            path: std::path::PathBuf::from("image.png"),
+            scores: vec![crate::models::image_meta::ImageScore {
+                name: "qual".to_string(),
+                value: 35,
+            }],
+            ..Default::default()
+        };
+        let meta_no_score = ImageMeta {
+            id: "id".to_string(),
+            path: std::path::PathBuf::from("image.png"),
+            scores: vec![],
+            ..Default::default()
+        };
+        assert!(super::image_score_matches(&meta_scored, &filter));
+        assert!(!super::image_score_matches(&meta_no_score, &filter));
+        let filter_allow = ScoreFilter {
+            allow_unscored: true,
+            ..filter
+        };
+        assert!(super::image_score_matches(&meta_no_score, &filter_allow));
+    }
+
+    // (You might want quickcheck/arbitrary for prop-tests, but here's one more demonstrative case)
+    #[test]
+    fn test_parse_range_fail_on_float() {
+        assert!(parse_range("1.5..7.2").is_err());
+        assert!(parse_range("4.2").is_err());
+    }
 }

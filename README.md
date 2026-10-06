@@ -1,3 +1,5 @@
+<div align="center">
+
 # 🎨 kanumi
 
 A CLI to manage collection of images.
@@ -9,6 +11,7 @@ A CLI to manage collection of images.
 [![Number of Stars](https://img.shields.io/github/stars/coko7/kanumi.svg?style=flat&logo=github&colorB=green&label=stars)](https://github.com/coko7/kanumi/stargazers)
 ![Rust](https://img.shields.io/github/languages/top/coko7/kanumi?color=orange)
 [![Tests](https://github.com/coko7/kanumi/actions/workflows/rust.yml/badge.svg)](https://github.com/coko7/kanumi/actions/workflows/rust.yml)
+</div>
 
 ## What is it?
 
